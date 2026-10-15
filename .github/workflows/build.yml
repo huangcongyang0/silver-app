@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: ${{ github.workspace }}/android-sdk
     steps:
       - name: 下载代码
         uses: actions/checkout@v4
@@ -18,25 +20,25 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: 安装 Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: 安装编译组件并同意协议
+      - name: 手动安装 Android SDK（不依赖第三方 action；同时装 33/34 两套，兼容不同工程配置）
         run: |
-          export ANDROID_HOME=$ANDROID_HOME
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip
+          unzip -q commandlinetools-linux-12266719_latest.zip
+          mv cmdline-tools latest
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+          yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
+          sdkmanager --sdk_root=$ANDROID_HOME "platforms;android-33" "platforms;android-34" "build-tools;33.0.2" "build-tools;34.0.0"
 
-      - name: 手动安装 Gradle 8.2（不依赖 wrapper）
+      - name: 安装 Gradle 8.2（兼容 AGP 7.4 与 8.2 两种工程配置）
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip
           unzip -q gradle-8.2-bin.zip
-          ./gradle-8.2/bin/gradle --version
 
       - name: 编译 Debug 版 APK（自带签名，可直接安装到手机）
         run: |
-          export ANDROID_HOME=$ANDROID_HOME
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           ./gradle-8.2/bin/gradle assembleDebug
 
       - name: 上传 APK 供下载
