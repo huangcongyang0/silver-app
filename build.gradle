@@ -1,0 +1,4 @@
+// 根构建文件：只声明 Android 插件版本，不引入任何第三方库
+plugins {
+    id 'com.android.application' version '8.2.2' apply false
+}

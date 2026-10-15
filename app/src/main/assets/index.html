@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>白银小帮手（给爸爸用）</title>
+<style>
+  :root{
+    --bg:#eef1f6; --card:#ffffff; --ink:#1c2430; --sub:#6b7686;
+    --brand:#2f5fe0; --up:#e23a3a; --down:#15a85a; --wait:#e8920c;
+    --radius:18px; --shadow:0 6px 22px rgba(30,50,90,.10);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);}
+  .stage{display:flex;justify-content:center;padding:18px 0 40px;}
+  .phone{width:100%;max-width:412px;background:#0e1320;border-radius:38px;padding:10px;box-shadow:0 24px 60px rgba(20,30,60,.35);}
+  .screen{background:var(--bg);border-radius:30px;overflow:hidden;height:840px;display:flex;flex-direction:column;}
+  .statusbar{height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:12px;color:#9aa7bd;background:linear-gradient(90deg,#1b2540,#22305a);}
+  .appbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:linear-gradient(135deg,#2f5fe0,#5b8def);color:#fff;}
+  .appbar .logo{font-weight:800;font-size:20px;}
+  .appbar .auto{font-size:11px;background:rgba(255,255,255,.18);padding:6px 10px;border-radius:20px;}
+  .content{flex:1;overflow-y:auto;padding:14px;font-size:18px;}
+  .content::-webkit-scrollbar{width:0;}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px;}
+  .lbl{font-size:15px;color:var(--sub);}
+  .price{font-size:46px;font-weight:800;margin-top:4px;letter-spacing:1px;}
+  .chg{font-size:22px;font-weight:800;margin-top:2px;}
+  .sub2{font-size:15px;color:var(--sub);margin-top:8px;line-height:1.6;}
+  /* 大建议框 */
+  .verdict{border-radius:var(--radius);padding:20px 16px;color:#fff;box-shadow:var(--shadow);margin-bottom:14px;}
+  .verdict .face{font-size:40px;}
+  .verdict .act{font-size:26px;font-weight:800;margin-top:6px;line-height:1.3;}
+  .verdict .why{font-size:16px;margin-top:10px;line-height:1.6;opacity:.95;}
+  .verdict.wait{background:linear-gradient(135deg,#e8920c,#f0a83a);}
+  .verdict.buy{background:linear-gradient(135deg,#15a85a,#3cc06f);}
+  .verdict.sell{background:linear-gradient(135deg,#e23a3a,#f06060);}
+  .newsline{font-size:16px;color:var(--ink);background:#fff7e8;border:1px solid #ffe2ad;border-radius:12px;padding:12px;line-height:1.6;}
+  .newsline b{color:var(--wait);}
+  /* 我的 */
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:17px;color:var(--ink);margin-bottom:8px;font-weight:600;}
+  .field label .ex{font-size:14px;color:var(--sub);font-weight:400;}
+  .field input{width:100%;border:2px solid #d8dee8;border-radius:14px;padding:14px;font-size:22px;outline:none;}
+  .field input:focus{border-color:var(--brand);}
+  .bigbtn{background:var(--brand);color:#fff;border:0;border-radius:16px;padding:16px;width:100%;font-size:20px;font-weight:800;}
+  .bigbtn:active{opacity:.85;}
+  .result{background:#f4f7ff;border:2px solid #d8e3ff;border-radius:16px;padding:16px;margin-top:14px;display:none;line-height:1.8;}
+  .result .big{font-size:30px;font-weight:800;}
+  .toggle{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid #eef1f6;font-size:18px;font-weight:600;}
+  .toggle:last-child{border-bottom:0;}
+  .sw{width:58px;height:34px;border-radius:20px;background:#cfd6e2;position:relative;transition:.2s;flex-shrink:0;}
+  .sw.on{background:var(--brand);}
+  .sw i{position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;background:#fff;transition:.2s;}
+  .sw.on i{left:27px;}
+  .tip{font-size:13px;color:var(--sub);text-align:center;line-height:1.6;margin-top:6px;}
+  .tabbar{display:flex;background:#fff;border-top:1px solid #e6eaf0;}
+  .tabbar .tab{flex:1;text-align:center;font-size:16px;font-weight:700;color:var(--sub);padding:16px 0;}
+  .tabbar .tab.on{color:var(--brand);background:#f3f7ff;}
+  .view{display:none;} .view.on{display:block;}
+  svg{display:block;}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span>5G · 100%</span></div>
+      <div class="appbar">
+        <div class="logo">🪙 白银小帮手</div>
+        <div class="auto">价格每天自动更新</div>
+      </div>
+      <div class="content">
+
+        <!-- 今天 -->
+        <section class="view on" id="v-today">
+          <div class="card">
+            <div class="lbl">国投白银（代码 161226）</div>
+            <div class="price">--<span style="font-size:22px"> 元/份</span></div>
+            <div class="chg" style="color:var(--sub)">正在加载真实价格…</div>
+            <div class="sub2">说明：这是一份"白银"基金，价格会涨也会跌。下面直接告诉你该怎么做。</div>
+          </div>
+
+          <!-- 大建议框（程序按趋势自动给出） -->
+          <div class="verdict wait" id="verdict">
+            <div class="face">🟡</div>
+            <div class="act" id="verdictAct">稍等，正在看行情…</div>
+            <div class="why" id="verdictWhy">打开软件时它会自己连上行情，看一眼现在该买还是卖。</div>
+          </div>
+
+          <div class="card">
+            <div class="lbl" style="margin-bottom:8px">最近价格（越靠右越近）</div>
+            <svg id="line" width="100%" height="140" viewBox="0 0 320 140"></svg>
+            <div class="sub2" id="trendWords">最近一个月走势加载中…</div>
+          </div>
+
+          <div class="newsline" id="newsline">📢 今天大事：打开后会自动告诉你今天白银是涨是跌、为啥。</div>
+        </section>
+
+        <!-- 我的 -->
+        <section class="view" id="v-mine">
+          <div class="card">
+            <div class="field">
+              <label>我买的时候，一份多少钱？<span class="ex">（看买的那张单子）</span></label>
+              <input id="cost" type="number" placeholder="例如 1.62" step="0.001" value="1.62" />
+            </div>
+            <div class="field">
+              <label>我一共买了多少份？<span class="ex">（单子上写的份数）</span></label>
+              <input id="shares" type="number" placeholder="例如 5000" value="5000" />
+            </div>
+            <button class="bigbtn" onclick="checkMine()">看看我赚还是亏</button>
+            <div class="result" id="mineResult"></div>
+          </div>
+
+          <div class="card">
+            <div class="lbl" style="margin-bottom:6px;font-weight:700">想让我提醒你</div>
+            <div class="toggle" onclick="toggle(this)">便宜了，提醒我买 <span class="sw on"><i></i></span></div>
+            <div class="toggle" onclick="toggle(this)">贵了，提醒我卖 <span class="sw"><i></i></span></div>
+            <div class="toggle" onclick="toggle(this)">每周提醒我看一眼 <span class="sw on"><i></i></span></div>
+            <div class="tip">提醒功能在真实版本里会自动弹窗，不用你天天盯着。</div>
+          </div>
+
+          <div class="card" style="background:#fff6f6;border:1px solid #ffd9d9;">
+            <div class="lbl" style="color:#8a4b4b;font-weight:700">一句大实话</div>
+            <div style="font-size:16px;color:#8a4b4b;line-height:1.7;margin-top:6px">白银这东西波动大，可能一天涨跌好几个点。只用<b>闲钱</b>买，亏了别急、别割肉，拿住等它回来最稳妥。本软件只给参考，不替你做决定。</div>
+          </div>
+        </section>
+
+      </div>
+      <div class="tabbar">
+        <div class="tab on" onclick="go('v-today')">🏠 今天</div>
+        <div class="tab" onclick="go('v-mine')">👛 我的</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 数据来源（优先级）=====
+   1) 安卓 App 内：原生直接抓东方财富（无需任何服务器）→ window.SilverBridge.get()
+   2) 网页版：后端 /api/data（server.js 提供）
+   3) 演示兜底：都拉不到就显示示例，永不崩
+*/
+const DEMO = {
+  price: 1.5441, changePct: -5.15,
+  series: Array.from({length:30},(_,i)=>+(1.70 - i*0.005 + Math.sin(i)*0.01).toFixed(4))
+};
+let series = DEMO.series.slice();
+let cur = series[series.length-1];
+let changePct = DEMO.changePct;
+
+function renderLine(){
+  const svg=document.getElementById('line');
+  const w=320,h=140,pad=14;
+  const min=Math.min(...series)-0.02, max=Math.max(...series)+0.02;
+  const xs=i=>pad+i*(w-2*pad)/(series.length-1);
+  const ys=v=>pad+(1-(v-min)/(max-min))*(h-2*pad);
+  let p=`<polyline points="${series.map((v,i)=>`${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ')}" fill="none" stroke="#2f5fe0" stroke-width="3"/>`;
+  series.forEach((v,i)=>{p+=`<circle cx="${xs(i).toFixed(1)}" cy="${ys(v).toFixed(1)}" r="2.6" fill="#2f5fe0"/>`;});
+  const lx=xs(series.length-1),ly=ys(cur);
+  const col=changePct<0?'var(--down)':'var(--up)';
+  p+=`<circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="5" fill="${col}"/>`;
+  p+=`<text x="${lx.toFixed(1)}" y="${(ly-8).toFixed(1)}" font-size="13" fill="${col}" text-anchor="middle" font-weight="700">${cur.toFixed(2)}</text>`;
+  svg.innerHTML=p;
+}
+
+/* 简单趋势判断 → 大建议（数据一变，建议自动变） */
+function setVerdict(){
+  const first=series[0], last=series[series.length-1];
+  const dropPct=(first-last)/first;
+  const recent=series.slice(-5);
+  const stillDown = recent[recent.length-1] <= recent[0];
+  const v=document.getElementById('verdict');
+  const act=document.getElementById('verdictAct');
+  const why=document.getElementById('verdictWhy');
+  if(dropPct>0.08 && stillDown){
+    v.className='verdict wait';
+    act.textContent='今天先别买，再等等';
+    why.textContent='最近一直在跌（从 '+first.toFixed(2)+' 跌到 '+last.toFixed(2)+'），先别急。等它不跌了，再小买一点，能买得更便宜。手里有就拿着，别慌。';
+  } else if(dropPct>0.08 && !stillDown){
+    v.className='verdict buy';
+    act.textContent='可以小买一点';
+    why.textContent='已经跌了不少，最近开始稳住。手里有闲钱，可以少少买一点，摊低以前的价钱。别一次买多。';
+  } else if(dropPct<-0.04){
+    v.className='verdict sell';
+    act.textContent='涨了，可以考虑卖一点';
+    why.textContent='最近涨上来了，想落袋为安，可以卖一小部分赚点。不急就先拿着也行。';
+  } else {
+    v.className='verdict wait';
+    act.textContent='先拿着，不用动';
+    why.textContent='价格不涨不跌，平稳。不用操作，隔几天再看看就行。';
+  }
+  document.getElementById('trendWords').textContent='最近（约一个月）：从 '+first.toFixed(2)+' 慢慢变到 '+last.toFixed(2)+'。';
+}
+
+/* 把拿到的一批数据套用到页面 */
+function applyData(d){
+  if(!d) return;
+  if(typeof d.price==='number'){ cur = d.price; }
+  if(typeof d.changePct==='number'){ changePct = d.changePct; }
+  if(d.series && d.series.length){
+    series = d.series.map(x => (x && typeof x==='object') ? x.value : x);
+  }
+  document.querySelector('.price').innerHTML = (+cur).toFixed(2)+'<span style="font-size:22px"> 元/份</span>';
+  const c=document.querySelector('.chg');
+  c.style.color = changePct<0?'var(--down)':'var(--up)';
+  c.textContent = (changePct<0?'▼ 今天跌了 ':'▲ 今天涨了 ')+Math.abs(changePct).toFixed(2)+'%';
+  const nl=document.getElementById('newsline');
+  if(changePct<-3){ nl.innerHTML='📢 今天大事：<b>白银今天跌了不少</b>。这是外面大环境造成的，不是基金出问题，不用慌，拿着等它回来。'; }
+  else if(changePct>3){ nl.innerHTML='📢 今天大事：<b>白银今天涨了一些</b>。想落袋可以卖一点，不急就先拿着。'; }
+  else { nl.innerHTML='📢 今天大事：<b>白银今天比较平稳</b>，没什么大波动，先拿着看看。'; }
+  renderLine(); setVerdict();
+}
+
+/* 启动：先画演示，再按环境取真实数据 */
+function boot(){
+  renderLine(); setVerdict();
+  if(window.SilverBridge){
+    // App 内：原生直接抓东方财富，无需服务器
+    let tries=0;
+    const tick=()=>{
+      try{ const raw=window.SilverBridge.get(); if(raw && raw.length>2){ applyData(JSON.parse(raw)); return; } }catch(e){}
+      if(tries++<20) setTimeout(tick,1500);
+    };
+    tick();
+    window.__silverRefresh=function(){ try{ const raw=window.SilverBridge.get(); if(raw&&raw.length>2) applyData(JSON.parse(raw)); }catch(e){} };
+  } else {
+    // 网页版：后端 /api/data
+    fetch('/api/data').then(r=>r.json()).then(d=>{ if(d&&d.price) applyData(d); }).catch(()=>{});
+  }
+}
+boot();
+
+/* 我的：赚亏 + 大白话建议（随真实价格变化） */
+function checkMine(){
+  const cost=parseFloat(document.getElementById('cost').value)||0;
+  const shares=parseFloat(document.getElementById('shares').value)||0;
+  const worth=shares*cur;
+  const spent=shares*cost;
+  const diff=worth-spent;
+  const pct=cost>0?((cur-cost)/cost*100):0;
+  const r=document.getElementById('mineResult');
+  r.style.display='block';
+  const col=diff>=0?'var(--up)':'var(--down)';
+  let advice;
+  if(diff<0){ advice='你现在亏了点，<b>别慌、也别急着卖</b>。白银会来回晃，拿着等它涨回来。手里有闲钱，可以小买一点把成本摊低。'; }
+  else { advice='你现在赚了，想稳妥就<b>卖一小部分落袋</b>；不急用钱就先拿着也行。'; }
+  if(Math.abs(pct)<1){ advice='基本不赚不亏，先拿着看看，不用动。'; }
+  r.innerHTML=`<div class="lbl">你现在的情况</div>
+    <div class="big" style="color:${col}">${diff>=0?'赚了':'亏了'} ${Math.abs(diff).toFixed(0)} 元</div>
+    <div style="font-size:16px;color:var(--sub)">（${pct>=0?'+':''}${pct.toFixed(1)}%）现在一共值约 <b>${worth.toFixed(0)} 元</b></div>
+    <div style="font-size:17px;margin-top:12px;line-height:1.7">💡 ${advice}</div>`;
+}
+
+/* 提醒开关 */
+function toggle(el){ const s=el.querySelector('.sw'); s.classList.toggle('on'); }
+
+/* 导航 */
+function go(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  document.querySelectorAll('.tabbar .tab').forEach(t=>t.classList.remove('on'));
+  event.currentTarget.classList.add('on');
+  document.querySelector('.content').scrollTop=0;
+}
+</script>
+</body>
+</html>

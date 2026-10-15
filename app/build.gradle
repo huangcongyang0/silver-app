@@ -1,0 +1,35 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.silverhelper'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.silverhelper"
+        minSdk 26          // Android 8.0 及以上（覆盖市面上 99% 手机）
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            // debug 包自带签名，可直接安装到手机
+            debuggable true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// 不依赖任何第三方库，只用安卓系统自带的 WebView
+dependencies {
+}
